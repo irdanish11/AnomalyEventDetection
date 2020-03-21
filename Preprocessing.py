@@ -230,8 +230,9 @@ if __name__=='__main__':
         for img in images:
             img.split('/')
             img_name = file_names[i][count]
-            write_path = 'ProcessedImages/'+path+'/'+dirs[i]
-            canny_path = 'CannyImages/'+path+'/'+dirs[i]
+            write_path = 'ProcessedImages/'+dirs[i]
+            canny_path = 'CannyImages/'+dirs[i]
             rescaled_image = PreProcessing(img_name, read_path=img, write_path=write_path, canny_edge=True,
                                            canny_path=canny_path, sigma=0.33)
             count += 1
+		
