@@ -19,22 +19,22 @@ def load_training_data(orig_frames, canned_frames):
   loc = canned_frames
   
   onlyfiles, file_names, dirs = ReadFileNames(loc)
-  x_train = []
+  x_train = np.zeros((13600, 128, 128))
 
   for i in tqdm(range(len(onlyfiles))):
     images = onlyfiles[i]
     for y in range(len(images)):
       img_name = path+'/'+dirs[i]+'/'+file_names[i][y]
       orig_frame = cv2.imread(img_name, 2)
-      x_train.append(orig_frame)
+      x_train[y] = orig_frame
       img_name = loc+'/'+dirs[i]+'/'+file_names[i][y]
       orig_name = cv2.imread(img_name, 0)
-      x_train.append(orig_name)
+      x_train[y+1] = orig_name
     
   return x_train
 
 x_train = load_training_data(orig_frames = 'ProcessedImages', canned_frames = 'CannyImages')
-
+x_train = np.expand_dims(x_train, axis = 3)
 
 ############# Model Definition ######################
 
