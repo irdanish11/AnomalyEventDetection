@@ -5,60 +5,58 @@ Created on Sat Mar 21 16:02:53 2020
 @author: junaid
 """
 
-from keras.layers import Input, Reshape
-from keras.layers import Conv2D, Conv2DTranspose, ConvLSTM2D
-from keras.models import Model
+from keras.layers import Conv2D, Conv2DTranspose, ConvLSTM2D, TimeDistributed
+from keras.callbacks.callbacks import ModelCheckpoint, EarlyStopping
+from keras.models import Sequential
 import cv2
-from PreProcessing import ReadFileNames
 from tqdm import tqdm
+import numpy as np
+import glob
+import pickle
+import os
 
-
-def load_training_data(orig_frames, canned_frames):
+def load_training_data(orig_frames, canned_frames, seq_size=8):
   
   path = orig_frames
   loc = canned_frames
   
-  onlyfiles, file_names, dirs = ReadFileNames(loc)
-  x_train = np.zeros((13600, 128, 128))
+  processed_imgs = glob.glob(path+'/*.tif')
+  cany_imgs = glob.glob(loc+'/*.tif')
+  
+  lst = []
+  count = 0
+  seq_size //= 2
+  for i in tqdm(range(len(processed_imgs)//seq_size)):
+      seq = []
+      for j in range(count, count+seq_size):
+          seq.append(np.expand_dims(cv2.imread(processed_imgs[i], 2), axis = 2))
+          seq.append(np.expand_dims(cv2.imread(cany_imgs[i], 2), axis = 2))
+      count += seq_size
+      lst.append(seq)
+  x_train = np.array(lst)
+  return x_train, lst
 
-  for i in tqdm(range(len(onlyfiles))):
-    images = onlyfiles[i]
-    for y in range(len(images)):
-      img_name = path+'/'+dirs[i]+'/'+file_names[i][y]
-      orig_frame = cv2.imread(img_name, 2)
-      x_train[y] = orig_frame
-      img_name = loc+'/'+dirs[i]+'/'+file_names[i][y]
-      orig_name = cv2.imread(img_name, 0)
-      x_train[y+1] = orig_name
-    
-  return x_train
 
-x_train = load_training_data(orig_frames = 'ProcessedImages', canned_frames = 'CannyImages')
-x_train = np.expand_dims(x_train, axis = 3)
+x_train, lst = load_training_data(orig_frames = 'ProcessedImages', canned_frames = 'CannyImages')
+
 
 ############# Model Definition ######################
+autoencoder = Sequential()
+autoencoder.add(TimeDistributed(Conv2D(filters = 64, kernel_size = (5, 5), strides =4 , padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', data_format="channels_last"), input_shape = (8, 128, 128, 1)))
+autoencoder.add(ConvLSTM2D(filters = 64, kernel_size = (3, 3), padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', return_sequences = True))
+autoencoder.add(ConvLSTM2D(filters = 32, kernel_size = (3, 3), padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', return_sequences = True))
 
-image = Input(shape = (128, 128, 1), name ='Input_Images', batch_shape = (8, 128, 128, 1))
+autoencoder.add(ConvLSTM2D(filters = 64, kernel_size = (3, 3), padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', return_sequences = True))
+autoencoder.add(TimeDistributed(Conv2DTranspose(filters = 1, kernel_size = (5, 5), strides = 4, padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', name = 'Deconvolutional_Layer')))
 
-#-------------------Encoder--------------------#
 
-enc_conv = Conv2D(filters = 64, kernel_size = (5, 5), strides = 4, padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal')(image)
-
-enc_conv = Reshape(target_shape = (1, 32, 32, 64))(enc_conv)
-
-enc_conv_lstm = ConvLSTM2D(filters = 64, kernel_size = (3, 3), padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', return_sequences = True)(enc_conv)
-encoder = ConvLSTM2D(filters = 32, kernel_size = (3, 3), padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', return_sequences = True)(enc_conv_lstm)
-
-#-------------------Decoder--------------------#
-
-dec_conv_lstm = ConvLSTM2D(filters = 64, kernel_size = (3, 3), padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', return_sequences = False)(encoder)
-decoder = Conv2DTranspose(filters = 64, kernel_size = (5, 5), strides = 4, padding = 'same', activation = 'relu', kernel_initializer = 'RandomNormal', name = 'Deconvolutional_Layer')(dec_conv_lstm)
-
-#-------------------Building the Model--------------------#
-
-autoencoder = Model(inputs = image, outputs = decoder)
 autoencoder.compile(optimizer = 'adam', loss = 'binary_crossentropy')
 
 autoencoder.summary()
+ckpt_path='./checkpoints'
+os.makedirs(ckpt_path, exist_ok=True)
+ckpt = ModelCheckpoint(ckpt_path+'/Autoencoder.h5', monitor='val_loss', save_best_only=True)
+e_stop = EarlyStopping(monitor='val_accuracy', patience=3, min_delta=0.01)
+History = autoencoder.fit(x_train, x_train, batch_size = 16, epochs = 50, validation_split = 0.15, callbacks=[ckpt, e_stop])
+pickle.dump(History, 'ModelHistory')
 
-autoencoder.fit(x_train, x_train, batch_size = 16, epochs = 50, validation_split = 0.15)

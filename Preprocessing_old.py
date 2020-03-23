@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on  Fri 20 14:48:49 2020
-
-@author: danish
-"""
 #Import the necessary libraries
 import cv2     # for capturing videos
 import os
@@ -11,7 +5,7 @@ import math
 from tqdm import tqdm
 import numpy as np
 import glob
-from numba import njit
+
 
 
 def Frame_Extractor(v_file, path='./', ext='.avi', frames_dir='train_1', extract_rate='all', frames_ext='.jpg'):
@@ -117,7 +111,7 @@ def Edge_Detector(image, sigma=0.33):
 	# return the edged image
     return edged   
 
-#@njit    
+    
 def PreProcessing(img_name, read_path, write_path, canny_edge=True, canny_path=None, sigma=0.33):
     """
     This method applies the preprocessing steps i.e Resizing, Canny Edge Detection,
@@ -169,8 +163,8 @@ def PreProcessing(img_name, read_path, write_path, canny_edge=True, canny_path=N
         if canny_path==None:
             raise ValueError('Invalid value for argument `canny_path`, the value cannot be `None`, when `canny_edge` flag is set to True. Please provide valid path to this argument.')
         edged = Edge_Detector(resized_image, sigma)
-        os.makedirs(canny_path.split('/')[0], exist_ok=True)
-        cv2.imwrite(canny_path+'_'+img_name, edged)
+        os.makedirs(canny_path, exist_ok=True)
+        cv2.imwrite(os.path.join(canny_path, img_name), edged)
     
     rescaled_image = resized_image.astype('float32')
     rescaled_image /= 255.0
@@ -179,8 +173,8 @@ def PreProcessing(img_name, read_path, write_path, canny_edge=True, canny_path=N
     #Take the global mean of the image
     rescaled_image -= rescaled_image.mean()
     
-    os.makedirs(write_path.split('/')[0], exist_ok=True)
-    cv2.imwrite(write_path+'_'+img_name, rescaled_image) 
+    os.makedirs(write_path, exist_ok=True)
+    cv2.imwrite(os.path.join(write_path, img_name), rescaled_image) 
     
     return rescaled_image
  
