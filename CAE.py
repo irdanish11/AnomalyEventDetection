@@ -16,13 +16,10 @@ import pickle
 import os
 
 def load_training_data(orig_frames, canned_frames, seq_size=8):
-  
   path = orig_frames
   loc = canned_frames
-  
   processed_imgs = glob.glob(path+'/*.tif')
   cany_imgs = glob.glob(loc+'/*.tif')
-  
   lst = []
   count = 0
   seq_size //= 2
