@@ -8,33 +8,14 @@ Created on Sat Mar 21 16:02:53 2020
 from keras.layers import Conv2D, Conv2DTranspose, ConvLSTM2D, TimeDistributed
 from keras.callbacks.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import Sequential
-import cv2
-from tqdm import tqdm
-import numpy as np
-import glob
+from preprocessing import load_data
 import pickle
 import os
 
-def load_training_data(orig_frames, canned_frames, seq_size=8):
-  path = orig_frames
-  loc = canned_frames
-  processed_imgs = glob.glob(path+'/*.tif')
-  cany_imgs = glob.glob(loc+'/*.tif')
-  lst = []
-  count = 0
-  seq_size //= 2
-  for i in tqdm(range(len(processed_imgs)//seq_size)):
-      seq = []
-      for j in range(count, count+seq_size):
-          seq.append(np.expand_dims(cv2.imread(processed_imgs[i], 2), axis = 2))
-          seq.append(np.expand_dims(cv2.imread(cany_imgs[i], 2), axis = 2))
-      count += seq_size
-      lst.append(seq)
-  x_train = np.array(lst)
-  return x_train, lst
 
 
-x_train, lst = load_training_data(orig_frames = 'ProcessedImages', canned_frames = 'CannyImages')
+
+x_train, lst = load_data(orig_frames = 'ProcessedImages', canned_frames = 'CannyImages')
 
 
 ############# Model Definition ######################
