@@ -6,3 +6,4 @@
 *.m~
 *.png
 TrainedSummary
+*.npy
