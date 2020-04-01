@@ -13,6 +13,7 @@ import math
 import cv2
 from tqdm import tqdm
 
+
 def Frame_Extractor(v_file, path='./', ext='.avi', frames_dir='train_1', extract_rate='all', frames_ext='.jpg'):
     """
     A method which extracts the frames from the guven video. It can ex
@@ -48,7 +49,9 @@ def Frame_Extractor(v_file, path='./', ext='.avi', frames_dir='train_1', extract
     """
     os.makedirs(frames_dir, exist_ok=True)
     # capturing the video from the given path
-    cap = cv2.VideoCapture(path+v_file+ext)   
+    if ext not in v_file:
+        v_file += ext
+    cap = cv2.VideoCapture(path+v_file)   
     
     frameRate = cap.get(5) #frame rate
 
@@ -126,8 +129,8 @@ def ProcessImg(img_name, read_path, write=True, write_path=None, res_shape=(128,
     gray = np.dot(img, rgb_weights)
     
     if write:
-        os.makedirs(write_path.split('/')[0], exist_ok=True)
-        cv2.imwrite(write_path+'_'+img_name, gray) 
+        os.makedirs(write_path, exist_ok=True)
+        cv2.imwrite(write_path+'/'+img_name, gray) 
     return gray
 
 def GlobalNormalization(img_list, name, path='Train_Data'):
@@ -144,29 +147,43 @@ def GlobalNormalization(img_list, name, path='Train_Data'):
     os.makedirs(path, exist_ok=True)
     np.save(path+'/'+name, img_arr)
     return img_arr
+
+def Vid2Frame(vid_path, frames_dir, ext_vid='.avi', frames_ext='.tif'):
+    vids = glob.glob(vid_path+'/*{0}'.format(ext_vid))
     
+    for vid in tqdm(vids):
+        path = vid.split('\\')[0]+'/'
+        v_file = vid.split('\\')[1]
+        Frame_Extractor(v_file, path=path, ext=ext_vid, frames_dir=frames_dir, 
+                        extract_rate='all', frames_ext=frames_ext)  
+        
+        
     
 if __name__=='__main__':    
-    #v_file='video'
-    #path='./'    
-    #frames_ext='.tif'
-    #frames_dir = 'Extracted_Frames'
-    #Frame_Extractor(v_file, path='./', ext='.mp4', frames_dir='Extracted_Frames', 
-    #              extract_rate='all', frames_ext='.tif')   
+    # vid_paths = ['AvenueDataset/training_videos', 'AvenueDataset/testing_videos']
+    # for vid_path in vid_paths:
+    #     print('\n\nExtracting Frame from the videos, Path: {0}\n'.format(vid_path))
+    #     frames_dir = 'Datasets/'+vid_path
+    #     Vid2Frame(vid_path, frames_dir, ext_vid='.avi', frames_ext='.tif')
+    # print('\n-------- Frames are Extracted from All Videos Succesfully! --------\n')  
+        
     
     #path = frames_dir
-    path = 'UCSDped1/Train'
-    onlyfiles, file_names, dirs = ReadFileNames(path)
-    img_list = []
-    for i in tqdm(range(len(onlyfiles))):
-        images = onlyfiles[i]
-        count = 0
-        for img in images:
-            img.split('/')
-            img_name = file_names[i][count]
-            write_path = 'ProcessedImages/'+dirs[i]
-            gray = ProcessImg(img_name, read_path=img, write=True, 
-                              write_path=write_path, res_shape=(128,128))
-            img_list.append(gray)
-            count += 1
-    img_arr = GlobalNormalization(img_list, name='Train_UCSped1.npy', path='Train_Data')
+    paths = ['Datasets/UCSDped1/Train', 'Datasets/UCSDped2/Train', 
+             'Datasets/AvenueDataset/training_videos']
+    for path in paths:
+        print('\n\nProcessing Images in this Dataset Path: {0}\n'.format(path))
+        onlyfiles, file_names, dirs = ReadFileNames(path)
+        img_list = []
+        for i in tqdm(range(len(onlyfiles))):
+            images = onlyfiles[i]
+            count = 0
+            for img in images:
+                img.split('/')
+                img_name = dirs[i]+'_'+file_names[i][count]
+                write_path = 'ProcessedImages/'+path.split('/')[1]
+                gray = ProcessImg(img_name, read_path=img, write=True, 
+                                  write_path=write_path, res_shape=(227,227))
+                img_list.append(gray)
+                count += 1
+        img_arr = GlobalNormalization(img_list, name='Train_{0}.npy'.format(path.split('/')[1]), path='Train_Data')
