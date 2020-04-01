@@ -15,9 +15,9 @@ import numpy as np
 
 def TrainModel(X_train, model, ckpt_name, hist_name, ckpt_path, epochs, batch_size):
     os.makedirs(ckpt_path, exist_ok=True)
-    ckpt = ModelCheckpoint(ckpt_path+'/'+ckpt_name, monitor="mean_squared_error", save_best_only=True)
+    ckpt = ModelCheckpoint(ckpt_path+'/'+ckpt_name, monitor='val_loss', save_best_only=True)
     e_stop = EarlyStopping(monitor='val_loss', patience=10)
-    History = model.fit(X_train, X_train, batch_size=batch_size, epochs=epochs, callbacks = [ckpt, e_stop])
+    History = model.fit(X_train, X_train, batch_size=batch_size, epochs=epochs, validation_split = 0.1, callbacks = [ckpt, e_stop])
     with open(ckpt_path+'/'+hist_name, "wb") as f:
         pickle.dump(History, f)
     return History.history
