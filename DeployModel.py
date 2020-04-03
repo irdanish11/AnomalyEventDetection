@@ -161,21 +161,21 @@ def DeploySystem(serve_type, model_path, preset_threshold=True, data_model=None,
     
     #Serve the Anomaly Detection from the WebCam or any video device that is attached.
     if serve_type=='real-time':
-        RealTimeDetection(model, threshold, serve_type, verbose=True)
+        RealTimeDetection(model, threshold, serve_type, verbose=verbose)
         test_hist = None
     #Serve the Anomaly Detection from the given video.
     elif serve_type=='video':
-        RealTimeDetection(model, threshold, serve_type, vid_path=path, verbose=True)
+        RealTimeDetection(model, threshold, serve_type, vid_path=path, verbose=verbose)
         test_hist = None
     #Serve the Anomaly Detection from the directory which contain frames, the Hirerachy of 
     #directories must be like this: <path>/*Directories/Here all the images
     #The path you provide must contain a further directory or directories and in those directories
     #should have the frames.
     elif serve_type=='frames':
-        test_hist = StaticServing(path, model, threshold, frames_ext, serve_type, verbose=True)
+        test_hist = StaticServing(path, model, threshold, frames_ext, serve_type, verbose=verbose)
     ##Serve the Anomaly Detection from the .npy file.
     elif serve_type=='npy':
-        test_hist = StaticServing(path, model, threshold, frames_ext, serve_type, verbose=True)
+        test_hist = StaticServing(path, model, threshold, frames_ext, serve_type, verbose=verbose)
     else:
         raise ValueError('Invalid value given to the  `serve_type` argument. Possible values: {0}'.format(serving_types))
     return test_hist

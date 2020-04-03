@@ -54,7 +54,6 @@ def PrepareData(X_train, re_shape=(-1,227,227,10)):
     frames = X_train.shape[2]
     #Need to make number of frames divisible by 10
     frames -= frames%10
-    
     X_train=X_train[:,:,:frames]
     X_train=X_train.reshape(re_shape)
     X_train=np.expand_dims(X_train,axis=4)
