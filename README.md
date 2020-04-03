@@ -1,4 +1,8 @@
 # AnomalyEventDetection
  
-# Implementation of 
-[Unsupervised deep learning system for local anomaly event detection in crowded scenes](https://link.springer.com/article/10.1007/s11042-019-7702-5)
+# Implementation of: 
+[Abnormal Event Detection in Videos using Spatiotemporal Autoencoder](https://arxiv.org/abs/1701.01546)
+
+# Datasets Used:
+[Avenue Dataset for Abnormal Event Detection](http://www.cse.cuhk.edu.hk/leojia/projects/detectabnormal/dataset.html)
+[UCSD Anomaly Detection Dataset](http://www.svcl.ucsd.edu/projects/anomaly/dataset.html)
