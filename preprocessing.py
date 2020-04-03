@@ -5,13 +5,13 @@ Created on Wed Apr  1 14:12:22 2020
 @author: danish
 """
 
-from keras.preprocessing.image import img_to_array,load_img
 import numpy as np
 import glob
 import os 
 import math
 import cv2
 from tqdm import tqdm
+import json
 
 
 def Frame_Extractor(v_file, path='./', ext='.avi', frames_dir='train_1', extract_rate='all', frames_ext='.jpg'):
@@ -86,7 +86,7 @@ def Frame_Extractor(v_file, path='./', ext='.avi', frames_dir='train_1', extract
                 raise ValueError('Invalid Value for argument `extract_rate`, it can be either `all` or an integer value.')
     cap.release()    
 
-def ReadFileNames(path):
+def ReadFileNames(path, frames_ext='.tif'):
     """
     This method will retrieve the Folder/File names from the dataset.
 
@@ -109,7 +109,7 @@ def ReadFileNames(path):
     file_names = []
     
     for i in range (len(directories)):
-        files = glob.glob(path+'/'+directories[i]+'/*.tif')
+        files = glob.glob(path+'/'+directories[i]+'/*{0}'.format(frames_ext))
         names = []
         for file in files:
             names.append(file.split("\\")[1])
@@ -117,11 +117,43 @@ def ReadFileNames(path):
         onlyfiles.append(files)
     return onlyfiles, file_names, directories
 
+def ToJson(obj, name, path='./', json_dir=False):
+    """ Write the Given Object to JSON file on the given path and name.
+        
+        Arguments:
+        ----------
+        obj: The object/variable you want to write to JSON file, it can be list or dictionary.
+        
+        name: Name for the JSON file.
+        
+        path: Path in which you want to save the JSON file. If want to save the JSON file in the current
+        directory, do not specify the value of this argument.
+              
+        json_dir: Boolean value if set to `True` a new directory with the name of `JSON` will be added at
+        the end of the given path.
+                  
+        Returns:
+        --------
+        None"""
+    if json_dir:
+        os.makedirs(path+'/JSON', exist_ok=True)
+        with open(path+'/JSON/{0}.json'.format(name), 'w') as f:
+            json.dump(obj, f)
+        f.close()
+    elif not json_dir:
+        if '.json' in name:
+            pass
+        else:
+            name=name+'.json'
+        with open(path+'/'+name, 'w') as f:
+            json.dump(obj, f)
+        f.close()
+
 def ProcessImg(img_name, read_path, write=True, write_path=None, res_shape=(128,128)):
     if write and write_path is None:
         raise TypeError('The value of argument cannot be `None` when, `write` is set to True. Provide a valid path, where processed image should be stored!')
-    img=load_img(read_path)
-    img=img_to_array(img)
+    img=cv2.imread(read_path)
+    #img=img_to_array(img)
     #Resize the Image to (227,227)
     img=cv2.resize(img,res_shape)
     
@@ -133,7 +165,7 @@ def ProcessImg(img_name, read_path, write=True, write_path=None, res_shape=(128,
         cv2.imwrite(write_path+'/'+img_name, gray) 
     return gray
 
-def GlobalNormalization(img_list, name, path='Train_Data'):
+def GlobalNormalization(img_list, name=None, path='Train_Data', save_data=True):
     img_arr = np.array(img_list)
     batch,height,width = img_arr.shape
     #Reshape to (227,227,batch_size)
@@ -142,10 +174,14 @@ def GlobalNormalization(img_list, name, path='Train_Data'):
     img_arr=(img_arr-img_arr.mean())/(img_arr.std())
     #Clip negative Values
     img_arr=np.clip(img_arr,0,1)
-    if '.npy' not in name:
-        name += '.npy'
-    os.makedirs(path, exist_ok=True)
-    np.save(path+'/'+name, img_arr)
+    if save_data:
+        if name==None:
+            raise TypeError('The value of the `name` argument cannot be `None` type, when `save_data` is set to True. Provide value with `str` datatype.')
+        if '.npy' not in name:
+            name += '.npy'
+        os.makedirs(path, exist_ok=True)
+        np.save(path+'/'+name, img_arr)
+        print('\n------ Data Save Succefully at this path: {0} ------\n'.format(path))
     return img_arr
 
 def Vid2Frame(vid_path, frames_dir, ext_vid='.avi', frames_ext='.tif'):
@@ -157,7 +193,24 @@ def Vid2Frame(vid_path, frames_dir, ext_vid='.avi', frames_ext='.tif'):
         Frame_Extractor(v_file, path=path, ext=ext_vid, frames_dir=frames_dir, 
                         extract_rate='all', frames_ext=frames_ext)  
         
-        
+def Fit_Preprocessing(path, frames_ext):
+    if frames_ext is None:
+        raise TypeError('Invalid Value for argument `frames_ext`, it cannot be None. Give proper extensions of the frames e.g: `.tif` or `.png` etc!')
+    print('\n\nProcessing Images in this Dataset Path: {0}\n'.format(path))
+    onlyfiles, file_names, dirs = ReadFileNames(path, frames_ext)
+    img_list = []
+    for i in tqdm(range(len(onlyfiles))):
+        images = onlyfiles[i]
+        count = 0
+        for img in images:
+            img.split('/')
+            img_name = dirs[i]+'_'+file_names[i][count]
+            write_path = 'ProcessedImages/'+path.split('/')[1]
+            gray = ProcessImg(img_name, read_path=img, write=True, 
+                              write_path=write_path, res_shape=(227,227))
+            img_list.append(gray)
+            count += 1    
+    return img_list
     
 if __name__=='__main__':    
     # vid_paths = ['AvenueDataset/training_videos', 'AvenueDataset/testing_videos']
@@ -169,21 +222,11 @@ if __name__=='__main__':
         
     
     #path = frames_dir
-    paths = ['Datasets/UCSDped1/Train', 'Datasets/UCSDped2/Train', 
-             'Datasets/AvenueDataset/training_videos']
+    # paths = ['Datasets/UCSDped1/Train', 'Datasets/UCSDped2/Train', 
+    #          'Datasets/AvenueDataset/training_videos']
+    paths = ['Datasets/UCSDped1/Test', 'Datasets/UCSDped2/Test', 
+             'Datasets/AvenueDataset/testing_videos']
     for path in paths:
-        print('\n\nProcessing Images in this Dataset Path: {0}\n'.format(path))
-        onlyfiles, file_names, dirs = ReadFileNames(path)
-        img_list = []
-        for i in tqdm(range(len(onlyfiles))):
-            images = onlyfiles[i]
-            count = 0
-            for img in images:
-                img.split('/')
-                img_name = dirs[i]+'_'+file_names[i][count]
-                write_path = 'ProcessedImages/'+path.split('/')[1]
-                gray = ProcessImg(img_name, read_path=img, write=True, 
-                                  write_path=write_path, res_shape=(227,227))
-                img_list.append(gray)
-                count += 1
-        img_arr = GlobalNormalization(img_list, name='Train_{0}.npy'.format(path.split('/')[1]), path='Train_Data')
+        img_list = Fit_Preprocessing(path, frames_ext='.tif')
+        name='Test_{0}.npy'.format(path.split('/')[1])
+        img_arr = GlobalNormalization(img_list, name, path='Test_Data', save_data=True)

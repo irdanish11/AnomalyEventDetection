@@ -9,3 +9,8 @@ TrainedSummary
 *.npy
 *.avi
 *.zip
+checkpoints/Train_UCSDped2_History
+checkpoints/Train_UCSDped2_History
+checkpoints/Train_UCSDped2_History
+*.h5
+*.rar
