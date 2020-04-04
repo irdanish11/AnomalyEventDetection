@@ -7,6 +7,7 @@ Created on Thu Apr  2 20:56:50 2020
 import cv2
 import ModelWrapper as mp
 from tensorflow.keras.models import load_model
+from tensorflow.compat.v1.keras.backend import set_session
 from preprocessing import Fit_Preprocessing, GlobalNormalization, ToJson
 from preprocessing import ReadFileNames
 import numpy as np
@@ -15,6 +16,12 @@ import tensorflow as tf
 
 print('\nTensorflow GPU installed: '+str(tf.test.is_built_with_cuda()))
 print('Is Tensorflow using GPU: '+str(tf.test.is_gpu_available()))
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+config.log_device_placement = True  # to log device placement (on which device the operation ran)
+sess = tf.compat.v1.Session(config=config)
+set_session(sess)
+sess.as_default()
 
 
 def WriteInfo(err, text, norm_count, anom_count):

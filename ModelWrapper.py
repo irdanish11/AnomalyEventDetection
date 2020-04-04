@@ -102,7 +102,7 @@ def ShowVideo(cap, v_frame, text):
     """
     v_frame = OverlayText2Img(v_frame, text)
     #cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-    cv2.imshow('Real Time Anomaly Detection',v_frame)
+    cv2.imshow('Real Time Anomaly Detection - Github.com/irdanish11',v_frame)
     # Press Q on keyboard to  exit
     if cv2.waitKey(25) & 0xFF == ord('q'):
         if cap is not None:
