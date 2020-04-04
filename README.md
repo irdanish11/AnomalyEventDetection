@@ -13,3 +13,6 @@
 
 ## Watch Video On Youtube:
 [Youtube Link](https://www.youtube.com/watch?v=HG30ynuQZxU)  
+
+# For Paid Professional Projects:
+[Work In AI, ML, Deep Learning and Reinforcement Learning Upwork](https://www.upwork.com/freelancers/~0178a63d698b05d476)
