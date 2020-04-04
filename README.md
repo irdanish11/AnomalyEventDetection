@@ -7,3 +7,9 @@
 1. [Avenue Dataset for Abnormal Event Detection](http://www.cse.cuhk.edu.hk/leojia/projects/detectabnormal/dataset.html)
 
 2. [UCSD Anomaly Detection Dataset](http://www.svcl.ucsd.edu/projects/anomaly/dataset.html)
+
+## Output:
+<img src="ReadMeData/AnomalyEventDetection.gif" width="432" height="240">
+
+## Watch Video On Youtube:
+[Youtube Link](https://www.youtube.com/watch?v=HG30ynuQZxU)  
