@@ -14,3 +14,12 @@ checkpoints/Train_UCSDped2_History
 checkpoints/Train_UCSDped2_History
 *.h5
 *.rar
+*.mp4
+checkpoints/Train_UCSDped1_History
+checkpoints/Train_AvenueDataset_History
+checkpoints/Train_Train_History
+checkpoints/Train_training_videos_History
+checkpoints/Train_UCSDped2_History
+checkpoints/Train_UCSDped2_History
+checkpoints/Train_UCSDped2_History
+checkpoints/Train_UCSDped2_History
